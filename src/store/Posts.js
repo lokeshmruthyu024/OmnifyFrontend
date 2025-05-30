@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const usePostStore = create((set) => ({
   posts: [],
   user: JSON.parse(localStorage.getItem('authUser')) || null,
@@ -8,19 +10,15 @@ export const usePostStore = create((set) => ({
 
   loginUser: async (userName, password) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName, password }),
       });
 
       const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Login failed');
-      }
+      if (!response.ok) throw new Error(data.error || data.message || 'Login failed');
 
-      // Save user to store and localStorage
       localStorage.setItem('authUser', JSON.stringify(data));
       set({ user: data });
 
@@ -33,16 +31,14 @@ export const usePostStore = create((set) => ({
 
   signupUser: async (fullName, userName, email, password) => {
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(`${baseUrl}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, userName, email, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Signup failed');
-      }
+      if (!response.ok) throw new Error(data.error || data.message || 'Signup failed');
 
       return data;
     } catch (error) {
@@ -53,15 +49,13 @@ export const usePostStore = create((set) => ({
 
   logoutUser: async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch(`${baseUrl}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Logout failed');
-      }
+      if (!response.ok) throw new Error(data.error || data.message || 'Logout failed');
 
       localStorage.removeItem('authUser');
       set({ user: null });
@@ -74,7 +68,7 @@ export const usePostStore = create((set) => ({
 
   getUser: async () => {
     try {
-      const response = await fetch('/api/auth/getme', {
+      const response = await fetch(`${baseUrl}/api/auth/getme`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -93,7 +87,7 @@ export const usePostStore = create((set) => ({
         throw new Error('Post must have a title or an image');
       }
 
-      const response = await fetch('/api/posts/create', {
+      const response = await fetch(`${baseUrl}/api/posts/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -101,10 +95,7 @@ export const usePostStore = create((set) => ({
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to create post');
-      }
+      if (!response.ok) throw new Error(data.error || data.message || 'Failed to create post');
 
       set((state) => ({ posts: [data, ...state.posts] }));
     } catch (error) {
@@ -112,15 +103,12 @@ export const usePostStore = create((set) => ({
     }
   },
 
-
   getAllPosts: async () => {
     try {
-      const response = await fetch('/api/posts');
+      const response = await fetch(`${baseUrl}/api/posts`);
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to fetch posts');
-      }
+      if (!response.ok) throw new Error(data.message || data.error || 'Failed to fetch posts');
 
       set({ posts: data });
     } catch (error) {
@@ -130,12 +118,10 @@ export const usePostStore = create((set) => ({
 
   getPost: async (id) => {
     try {
-      const response = await fetch(`/api/posts/${id}`);
+      const response = await fetch(`${baseUrl}/api/posts/${id}`);
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to fetch post');
-      }
+      if (!response.ok) throw new Error(data.message || data.error || 'Failed to fetch post');
 
       return data;
     } catch (error) {
@@ -143,49 +129,40 @@ export const usePostStore = create((set) => ({
       throw error;
     }
   },
+
   editPost: async (id, updatedPost) => {
     try {
       if (!updatedPost.title && !updatedPost.description && !updatedPost.img) {
         throw new Error('Post must have a title or an image');
       }
 
-      const response = await fetch(`/api/posts/edit/${id}`, {
+      const response = await fetch(`${baseUrl}/api/posts/edit/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // ✅ same as createPost
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(updatedPost),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to edit post');
-      }
+      if (!response.ok) throw new Error(data.message || data.error || 'Failed to edit post');
 
       set((state) => ({
-        posts: state.posts.map((post) =>
-          post._id === id ? data : post
-        ),
+        posts: state.posts.map((post) => (post._id === id ? data : post)),
       }));
     } catch (error) {
       console.error('Edit Post Error:', error.message);
     }
   },
 
-
   deletePost: async (id) => {
     try {
-      const response = await fetch(`/api/posts/delete/${id}`, {
+      const response = await fetch(`${baseUrl}/api/posts/delete/${id}`, {
         method: 'DELETE',
-        credentials: 'include',  // Use cookie-based auth
+        credentials: 'include',
       });
 
       const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to delete post');
-      }
+      if (!response.ok) throw new Error(data.message || data.error || 'Failed to delete post');
 
       set((state) => ({
         posts: state.posts.filter((post) => post._id !== id),
