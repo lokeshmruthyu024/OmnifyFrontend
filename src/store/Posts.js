@@ -14,6 +14,7 @@ export const usePostStore = create((set) => ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName, password }),
+        credentials: 'include'
       });
 
       const data = await response.json();
