@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
+console.log(baseUrl);
 export const usePostStore = create((set) => ({
   posts: [],
   user: JSON.parse(localStorage.getItem('authUser')) || null,
@@ -17,18 +17,28 @@ export const usePostStore = create((set) => ({
         credentials: 'include'
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || data.message || 'Login failed');
+      const loginData = await response.json();
+      if (!response.ok) throw new Error(loginData.error || loginData.message || 'Login failed');
 
-      localStorage.setItem('authUser', JSON.stringify(data));
-      set({ user: data });
+      // ✅ Immediately fetch the user from the cookie session
+      const userResponse = await fetch(`${baseUrl}/api/auth/getme`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const user = await userResponse.json();
+      if (!userResponse.ok) throw new Error(user.message || 'Failed to fetch user');
 
-      return data;
+      // ✅ Store the actual user from session
+      localStorage.setItem('authUser', JSON.stringify(user));
+      set({ user });
+
+      return user;
     } catch (error) {
       console.error('Login Error:', error.message);
       throw error;
     }
-  },
+  }
+  
 
   signupUser: async (fullName, userName, email, password) => {
     try {
