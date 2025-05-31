@@ -8,6 +8,27 @@ export const usePostStore = create((set) => ({
   setUser: (userData) => set({ user: userData }),
   setPosts: (posts) => set({ posts }),
 
+
+
+  signupUser: async (fullName, userName, email, password) => {
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fullName, userName, email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || data.message || 'Signup failed');
+
+      return data;
+    } catch (error) {
+      console.error('Signup Error:', error.message);
+      throw error;
+    }
+  },
+
   loginUser: async (userName, password) => {
     try {
       const response = await fetch(`${baseUrl}/api/auth/login`, {
@@ -37,46 +58,8 @@ export const usePostStore = create((set) => ({
       console.error('Login Error:', error.message);
       throw error;
     }
-  }
-  
-
-  signupUser: async (fullName, userName, email, password) => {
-    try {
-      const response = await fetch(`${baseUrl}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ fullName, userName, email, password }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || data.message || 'Signup failed');
-
-      return data;
-    } catch (error) {
-      console.error('Signup Error:', error.message);
-      throw error;
-    }
   },
 
-  logoutUser: async () => {
-    try {
-      const response = await fetch(`${baseUrl}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || data.message || 'Logout failed');
-
-      localStorage.removeItem('authUser');
-      set({ user: null });
-      return data;
-    } catch (error) {
-      console.error('Logout Error:', error.message);
-      throw error;
-    }
-  },
 
   getUser: async () => {
     try {
