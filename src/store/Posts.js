@@ -35,6 +35,7 @@ export const usePostStore = create((set) => ({
       const response = await fetch(`${baseUrl}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ fullName, userName, email, password }),
       });
 
